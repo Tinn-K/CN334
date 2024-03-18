@@ -1,5 +1,43 @@
-from django.http import HttpResponse
+import os
+
+import requests
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+@csrf_exempt
+def basic_request(request):
+    if request.method == "GET":
+        return JsonResponse({"status": "GET Pass"}, safe=False)
+
+    if request.method == "POST":
+        return JsonResponse({"status": "POST Pass"}, safe=False)
+
+
+@csrf_exempt
+def tokenize(request):
+    if request.method == "POST":
+        try:
+            sentence = request.POST["text"]
+        except KeyError:
+            return JsonResponse({"error": "Input not found"}, safe=False, status=500)
+
+        url = "https://api.aiforthai.in.th/tlexplus"
+
+        params = {"text": sentence}
+
+        headers = {"Apikey": os.environ["AIFORTHAI_API_KEY"]}
+        response = requests.get(url, params=params, headers=headers)
+
+        return JsonResponse(
+            {"student": "6410742370", "tokenize": response.json()}, safe=False
+        )
+
+    return JsonResponse({"error": "Method not allowed!"}, safe=False, status=403)
 
 
 # Create your views here.
